@@ -1,5 +1,12 @@
 # 코코 스튜디오
 
+## 화면 미리보기
+
+![뜨개 도안 편집 화면 · 브라우저 실제 캡처. 3D 편물 렌더가 아닌 2D 도안 편집기입니다.](docs/screenshots/overview.png)
+
+뜨개 도안 편집 화면 · 브라우저 실제 캡처. 3D 편물 렌더가 아닌 2D 도안 편집기입니다.
+
+
 A dependency-free, Korean knitting chart editor with a real WebGL yarn-mesh preview.
 
 ## Run
