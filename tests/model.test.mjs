@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';
+import {sample,makeChart,validate,resize,flood,mirrored} from '../dist/model.js';
+import {chartSVG} from '../dist/export.js';
+for(let kind of ['rabbit','heart']){let c=sample(kind);assert.equal(c.cells.length,1036);assert.equal(validate(JSON.parse(JSON.stringify(c))).title,c.title);assert.equal(c.border,3)}
+for(let [cols,rows] of [[1,1],[120,160],[37,28]]){let c=makeChart(cols,rows);c.cells[0]={color:'#123456',symbol:'purl'};assert.equal(validate(c).cells[0].color,'#123456');assert.ok(chartSVG(c).endsWith('</svg>'))}
+for(let v of [null,{}, {...makeChart(),cols:121},{...makeChart(),rows:0},{...makeChart(),cells:[]},{...makeChart(),cells:Array.from({length:1036},()=>({color:'red',symbol:'knit'}))}])assert.throws(()=>validate(v));
+let c=makeChart(4,3);c.cells[8]={color:'#123456',symbol:'yo'};let r=resize(c,2,2);assert.equal(r.cells[2].symbol,'yo');assert.equal(r.cells.length,4);r=resize(c,6,5);assert.equal(r.cells[24].symbol,'yo');assert.equal(r.cells[0].symbol,'knit');
+c=makeChart(120,160);flood(c,0,{color:'#123456',symbol:'purl'});assert.equal(c.cells.filter(c=>c.color==='#123456').length,19200);assert.equal(mirrored({color:'#ffffff',symbol:'ssk'}).symbol,'k2tog');assert.equal(mirrored({color:'#ffffff',symbol:'k2tog'}).symbol,'ssk');
+c=makeChart(3,3);c.cells[4]={color:'#123456',symbol:'knit'};flood(c,0,{color:'#aaaaaa',symbol:'yo'});assert.equal(c.cells[4].color,'#123456');assert.equal(c.cells.filter(c=>c.symbol==='yo').length,8);let s=chartSVG({...c,title:'<script> & "x"'});assert.ok(!s.includes('<script>'));assert.ok(s.includes('&lt;script&gt;'));assert.ok(s.includes('안쪽면'));console.log('PASS: sample validation, boundary sizes, invalid imports, resize origin, max-size flood, isolated flood, mirrored slants, SVG escaping and legend');
