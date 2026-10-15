@@ -1,5 +1,95 @@
-import {SYMBOLS} from './model.js';
-export function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]))}
-export function chartSVG(c){const s=24,pad=55,w=Math.max(660,c.cols*s+110),titleLen=Math.max(20,Math.floor((w-110)/25)),titleLines=Array.from({length:Math.ceil(c.title.length/titleLen)||1},(_,i)=>c.title.slice(i*titleLen,(i+1)*titleLen)),top=105+(titleLines.length-1)*30,legendY=top+c.rows*s+65;let used=[...new Set(c.cells.map(v=>v.symbol))],colors=[...new Set(c.cells.map(v=>v.color))];let h=legendY+110+used.length*27+Math.ceil(colors.length/5)*30;let a=[`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect width="100%" height="100%" fill="white"/><g font-family="Arial, sans-serif" fill="#263a34">${titleLines.map((t,i)=>`<text x="${pad}" y="${40+i*30}" font-size="25" font-weight="bold">${esc(t)}</text>`).join('')}<text x="${pad}" y="${top-37}" font-size="12">${c.cols}칸 × ${c.rows}단 · ${c.mode==='flat'?'평면뜨기: 홀수단 ← / 짝수단 →':'원형뜨기: 모든 단 ←'} · 겉면 기준</text><text x="${pad}" y="${top-18}" font-size="11">가로·세로 칸은 실제 코 수와 다를 수 있어요. 기호 범례를 확인하세요.</text>`];c.cells.forEach((v,i)=>{let x=pad+(i%c.cols)*s,y=top+Math.floor(i/c.cols)*s;a.push(`<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${v.symbol==='none'?'#d5d8d2':v.color}" stroke="#b9bdb3" stroke-width=".6"/>`);if(v.symbol!=='knit')a.push(`<text x="${x+s/2}" y="${y+s/2+6}" text-anchor="middle" font-size="18" fill="${dark(v.color)?'#fff':'#25382f'}">${esc(SYMBOLS[v.symbol][0])}</text>`)});for(let y=0;y<c.rows;y++){let row=c.rows-y;a.push(`<text x="${pad-12}" y="${top+y*s+17}" text-anchor="end" font-size="10">${row}</text><text x="${pad+c.cols*s+12}" y="${top+y*s+17}" font-size="10">${c.mode==='round'||row%2?'←':'→'}</text>`)}for(let x=0;x<c.cols;x++)a.push(`<text x="${pad+x*s+12}" y="${top+c.rows*s+20}" text-anchor="middle" font-size="9">${c.cols-x}</text>`);if(c.border){[c.border,c.cols-c.border].forEach(x=>a.push(`<path d="M${pad+x*s} ${top}v${c.rows*s}" stroke="#627e61" stroke-width="2" stroke-dasharray="5 4"/>`))}a.push(`<text x="${pad}" y="${legendY}" font-size="17" font-weight="bold">도안 범례</text>`);used.forEach((v,i)=>a.push(`<text x="${pad}" y="${legendY+30+i*27}" font-size="13">${esc(SYMBOLS[v][0]||'□')}  ${esc(SYMBOLS[v][1])} — ${esc(SYMBOLS[v][2])}</text>`));let cy=legendY+40+used.length*27;colors.forEach((col,i)=>{let x=pad+(i%5)*115,y=cy+Math.floor(i/5)*30;a.push(`<rect x="${x}" y="${y-12}" width="14" height="14" fill="${col}" stroke="#aaa"/><text x="${x+20}" y="${y}" font-size="10">${col}</text>`)});a.push(`<text x="${pad}" y="${h-23}" font-size="10">코코 스튜디오 · 패턴마다 기호가 다를 수 있어요. 늘림·줄임의 코 수 균형은 별도로 확인하세요.</text></g></svg>`);return a.join('')}
-export function dark(hex){let n=parseInt(hex.slice(1),16);return ((n>>16)*.299+(n>>8&255)*.587+(n&255)*.114)<135}
-export function download(blob,name){let a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),10000)}
+import { SYMBOLS, measureChart } from "./model.js";
+export function esc(v) {
+  return String(v).replace(
+    /[&<>"']/g,
+    (c) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&apos;",
+      })[c],
+  );
+}
+export function chartSVG(c) {
+  const size = measureChart(c);
+  const s = 24,
+    pad = 55,
+    w = Math.max(660, c.cols * s + 110),
+    titleLen = Math.max(20, Math.floor((w - 110) / 25)),
+    titleLines = Array.from(
+      { length: Math.ceil(c.title.length / titleLen) || 1 },
+      (_, i) => c.title.slice(i * titleLen, (i + 1) * titleLen),
+    ),
+    top = 130 + (titleLines.length - 1) * 30,
+    legendY = top + c.rows * s + 65;
+  let used = [...new Set(c.cells.map((v) => v.symbol))],
+    colors = [...new Set(c.cells.map((v) => v.color))];
+  let h = legendY + 110 + used.length * 27 + Math.ceil(colors.length / 5) * 30;
+  let a = [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect width="100%" height="100%" fill="white"/><g font-family="Arial, sans-serif" fill="#263a34">${titleLines.map((t, i) => `<text x="${pad}" y="${40 + i * 30}" font-size="25" font-weight="bold">${esc(t)}</text>`).join("")}<text x="${pad}" y="${top - 37}" font-size="12">${c.cols}칸 × ${c.rows}단 · ${c.mode === "flat" ? "평면뜨기: 홀수단 ← / 짝수단 →" : "원형뜨기: 모든 단 ←"} · 겉면 기준</text><text x="${pad}" y="${top - 18}" font-size="11">가로·세로 칸은 실제 코 수와 다를 수 있어요. 기호 범례를 확인하세요.</text><text x="${pad}" y="${top - 57}" font-size="11">10cm 게이지 ${c.gaugeSt}코 × ${c.gaugeRows}단 · 예상 ${size.minWidthCm !== size.widthCm ? size.minWidthCm.toFixed(1) + "–" : ""}${size.widthCm.toFixed(1)} × ${size.heightCm.toFixed(1)}cm${c.mode === "round" ? " (가로는 둘레)" : ""}</text>`,
+  ];
+  c.cells.forEach((v, i) => {
+    let x = pad + (i % c.cols) * s,
+      y = top + Math.floor(i / c.cols) * s;
+    a.push(
+      `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${v.symbol === "none" ? "#d5d8d2" : v.color}" stroke="#b9bdb3" stroke-width=".6"/>`,
+    );
+    if (v.symbol !== "knit")
+      a.push(
+        `<text x="${x + s / 2}" y="${y + s / 2 + 6}" text-anchor="middle" font-size="18" fill="${dark(v.symbol === "none" ? "#d5d8d2" : v.color) ? "#fff" : "#25382f"}">${esc(SYMBOLS[v.symbol][0])}</text>`,
+      );
+  });
+  for (let y = 0; y < c.rows; y++) {
+    let row = c.rows - y;
+    a.push(
+      `<text x="${pad - 12}" y="${top + y * s + 17}" text-anchor="end" font-size="10">${row}</text><text x="${pad + c.cols * s + 12}" y="${top + y * s + 17}" font-size="10">${c.mode === "round" || row % 2 ? "←" : "→"}</text>`,
+    );
+  }
+  for (let x = 0; x < c.cols; x++)
+    a.push(
+      `<text x="${pad + x * s + 12}" y="${top + c.rows * s + 20}" text-anchor="middle" font-size="9">${c.cols - x}</text>`,
+    );
+  if (c.border) {
+    [c.border, c.cols - c.border].forEach((x) =>
+      a.push(
+        `<path d="M${pad + x * s} ${top}v${c.rows * s}" stroke="#627e61" stroke-width="2" stroke-dasharray="5 4"/>`,
+      ),
+    );
+  }
+  a.push(
+    `<text x="${pad}" y="${legendY}" font-size="17" font-weight="bold">도안 범례</text>`,
+  );
+  used.forEach((v, i) =>
+    a.push(
+      `<text x="${pad}" y="${legendY + 30 + i * 27}" font-size="13">${esc(SYMBOLS[v][0] || "□")}  ${esc(SYMBOLS[v][1])} — ${esc(c.mode === "round" ? SYMBOLS[v][2].split(" · 안쪽면")[0] : SYMBOLS[v][2])}</text>`,
+    ),
+  );
+  let cy = legendY + 40 + used.length * 27;
+  colors.forEach((col, i) => {
+    let x = pad + (i % 5) * 115,
+      y = cy + Math.floor(i / 5) * 30;
+    a.push(
+      `<rect x="${x}" y="${y - 12}" width="14" height="14" fill="${col}" stroke="#aaa"/><text x="${x + 20}" y="${y}" font-size="10">${col}</text>`,
+    );
+  });
+  a.push(
+    `<text x="${pad}" y="${h - 23}" font-size="10">코코 스튜디오 · 패턴마다 기호가 다를 수 있어요. 늘림·줄임의 코 수 균형은 별도로 확인하세요.</text></g></svg>`,
+  );
+  return a.join("");
+}
+export function dark(hex) {
+  let n = parseInt(hex.slice(1), 16);
+  return (n >> 16) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 < 135;
+}
+export function download(blob, name) {
+  let a = document.createElement("a"),
+    u = URL.createObjectURL(blob);
+  a.href = u;
+  a.download = name;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 10000);
+}
