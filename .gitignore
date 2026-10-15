@@ -6,3 +6,5 @@ node_modules/
 *.log
 *.tsbuildinfo
 .DS_Store
+test-results/
+playwright-report/

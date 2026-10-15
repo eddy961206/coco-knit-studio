@@ -1,29 +1,57 @@
 # 코코 스튜디오
 
-## 화면 미리보기
+브라우저에서 뜨개 도안을 그리고, 편물 모양을 살펴보고, 한 단씩 따라 뜨는 한국어 도안 편집기야. 아이보리 바탕에 초록색 도구와 작은 실 색상 팔레트를 사용해.
 
-![뜨개 도안 편집 화면 · 브라우저 실제 캡처. 3D 편물 렌더가 아닌 2D 도안 편집기입니다.](docs/screenshots/overview.png)
+## 실행
 
-뜨개 도안 편집 화면 · 브라우저 실제 캡처. 3D 편물 렌더가 아닌 2D 도안 편집기입니다.
+Node.js가 있는 환경에서 프로젝트 폴더의 다음 명령을 실행하면 돼.
 
+```sh
+npm start
+```
 
-A dependency-free, Korean knitting chart editor with a real WebGL yarn-mesh preview.
+브라우저에서 [코코 스튜디오 열기](http://127.0.0.1:4187)를 누르면 돼. 앱은 `dist/`의 정적 파일로 실행돼. 실행을 위한 패키지 설치나 빌드는 필요 없어. 다른 정적 HTTP 서버로 `dist/`를 제공해도 돼.
 
-## Run
-Serve `dist/` using a static HTTP server. No install or build is needed.
+## 도안 그리기와 따라 뜨기
 
-## Data
-Chart data is only saved to browser localStorage under `coco.knit.chart.v1`. JSON backup/import preserves colors, stitch symbols, dimensions, gauge settings, row progress and completion. Import accepts only bounded, validated chart data (120 columns × 160 rows maximum; 4MB import maximum). No account data, analytics, remote fonts or third-party scripts are sent by the app.
+- 그리기, 지우기, 연결된 영역 채우기, 사각형 선택, 복사·붙여넣기, 좌우 반전, 테두리 안 가로 반복을 지원해. 좌우 반전은 줄임 기호의 방향도 바꿔.
+- 실 색과 기호를 고를 수 있어. 도안에 사용한 사용자 색은 팔레트에서 다시 선택할 수 있어.
+- 빈 도안, 토끼, 하트, 고무뜨기, 스트라이프의 다섯 가지 시작점을 제공해.
+- 도안은 항상 겉면에서 본 모습이며 아래가 1단이야. 평면뜨기와 원형뜨기에 맞춰 현재 단의 읽는 방향과 실제 뜨는 순서를 안내해.
+- **따라 뜨기**에서는 색과 기호가 같은 구간을 순서대로 확인할 수 있어. 구간 체크는 일시적인 표시이며 새로고침 후에는 보존되지 않아. 단수와 마지막 단 완료 기록은 저장되고 실행 취소·다시 실행도 가능해.
+- 게이지로 예상 너비 또는 둘레와 높이를 계산해. 늘림·줄임에 따른 시작 코 수와 완성 코 수도 표시해. 실제 완성 치수는 실, 장력, 세탁·블로킹에 따라 달라져.
+- 작업 메모는 최대 2,000자야. 자동 저장과 JSON 백업에 포함되며 도안 이미지에는 들어가지 않아.
 
-## Features
-Drag painting with one undo step per stroke, erase, flood fill, rectangular selection, copy/paste, mirror with decrease-slant swap, bounded horizontal repetition, zoom, gauge-shaped grid, flat/round reading directions, row tracker, original rabbit and heart samples. SVG/PNG and print exports contain row numbering, colors and stitch legends. The chart is always viewed from the right side and numbered from the bottom.
+도안은 최대 가로 120칸 × 세로 160단이야. 도안을 줄이면 아래쪽·왼쪽 칸을 유지하고 위쪽·오른쪽의 넘치는 칸을 지워. 실행 취소로 되돌릴 수 있어.
 
-The 3D preview uses lit tube meshes with orbit and pinch/wheel zoom, per-cell colors, and differentiated approximate stitch appearances. It is not a physical knitting simulation. Increases/decreases are visual representations, not real topology changes; gauge and tension cannot predict the finished object. Large charts show a centered 60×60 preview. WebGL-unavailable browsers retain the working chart editor and explicit fallback notice.
+## 3D 미리보기
 
-## Testing
-`node tests/model.test.mjs`
-Syntax checks pass for every JavaScript module. The model tests cover sample integrity, dimensions, malformed imports, resize anchoring, max-size fill, isolated fill, mirror slants and SVG escaping.
-The 3D component additionally received geometry and lifecycle tests with mock WebGL. Actual browser rendering and real device touch tests could not run in the task environment because Chromium launch was denied by socket restrictions. No visual/browser QA claim is made.
+편물, 원통, 비니 형태에 배색과 기본 코 모양을 표시해. 실 굵기, 늘어짐 표현, 조명을 바꾸고 앞면·뒷면·비스듬한 시점, 확대·축소, 자동 회전, 현재 시점 PNG 저장을 사용할 수 있어. 완료한 단만 표시하는 옵션도 있어.
 
-## Design
-The implementation follows an original generated design reference: ivory work surface, forest-green controls, rose/sage yarns, restrained three-rail editor, row tracker, and uncluttered mobile tool drawer. The later requested 3D mode is a deliberate extension of this design. Native-sized screenshot comparison remains unverified because of the browser limitation.
+게이지는 미리보기의 비율에 반영돼. 큰 도안은 **가운데 최대 60 × 60칸**만 표시하며 화면에 잘린 범위를 안내해. WebGL을 사용할 수 없으면 안내를 표시하고 도안 편집과 따라 뜨기는 계속 사용할 수 있어.
+
+3D는 배색과 조직을 살펴보는 시각적 근사치야. 의류 사이즈별 도안 생성, 실제 늘림·줄임 연결 구조, 편물의 물리적 처짐, 뒷면 배색실의 걸침을 재현하지 않아. 원통·비니 모양을 고르는 것만으로 제작 가능한 의류 도안이 만들어지지는 않아.
+
+## 저장과 내보내기
+
+도안은 현재 브라우저의 `localStorage`에 `coco.knit.chart.v1` 키로 저장돼. 서버나 계정에 동기화되지 않으므로 중요한 작업은 JSON으로 백업해 둬.
+
+JSON 백업에는 도안, 색, 기호, 게이지, 뜨는 방식, 테두리, 단수·완료 기록, 메모가 들어가. 가져오기는 최대 4MB이며 내용을 검증한 후 현재 도안을 바꿀지 확인해. 기존 저장 데이터를 읽지 못하면 원문을 내려받아 복구에 사용할 수 있어.
+
+SVG·PNG 도안과 인쇄/PDF 출력에는 단 번호와 기호 범례가 포함돼. 3D PNG는 현재 미리보기 화면을 저장해. 앱은 외부 글꼴이나 분석 스크립트를 불러오지 않아.
+
+## 개발과 검증
+
+테스트를 실행할 때만 개발 의존성과 Chromium을 설치하면 돼.
+
+```sh
+npm ci
+npx playwright install chromium
+npm run check
+npm test
+npm run test:e2e
+```
+
+`npm test`는 도안 모델 테스트와 WebGL 모의 환경 테스트를 실행해. `npm run test:e2e`는 Playwright 브라우저 회귀 테스트를 실행해.
+
+현재 모델 테스트, WebGL 모의 테스트 6개, Playwright 테스트 17개가 통과했어. 데스크톱 1536 × 1024 화면과 모바일 너비 320px·390px를 확인했어. 실제 iOS 기기의 터치 동작은 검증하지 않았어.

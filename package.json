@@ -1,1 +1,14 @@
-{"name":"coco-knit-studio","private":true,"type":"module"}
+{
+  "name": "coco-knit-studio",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
+  },
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node tests/model.test.mjs && node --test tests/preview3d.test.mjs",
+    "test:e2e": "playwright test",
+    "check": "node --check dist/app.js && node --check dist/model.js && node --check dist/preview3d.js && node --check dist/export.js"
+  }
+}
